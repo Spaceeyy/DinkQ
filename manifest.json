@@ -1,6 +1,6 @@
 {
-  "name": "My Claude App",
-  "short_name": "ClaudeApp",
+  "name": "DinkQ",
+  "short_name": "DinkQ",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
