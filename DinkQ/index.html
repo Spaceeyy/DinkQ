@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dink Queue</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg-deep: #12332F;
+    --bg-deep2: #1B4A44;
+    --card: #20554E;
+    --card-border: rgba(244,247,242,0.18);
+    --text: #F4F7F2;
+    --text-muted: #AFD1C8;
+    --yellow: #DCE94B;
+    --yellow-text: #20301A;
+    --coral: #E8794A;
+    --coral-text: #301604;
+    --slot-fill: rgba(244,247,242,0.10);
+    --slot-fill-border: rgba(244,247,242,0.25);
+    --slot-empty: rgba(244,247,242,0.04);
+    --slot-empty-border: rgba(244,247,242,0.3);
+    --medal-gold: #E6B422;
+    --medal-silver: #C0C0C0;
+    --medal-bronze: #B08D57;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-deep2) 100%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .font-display { font-family: 'Big Shoulders Display', sans-serif; }
+
+  button, input { font-family: inherit; }
+
+  .container {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+  @media (min-width: 768px) {
+    .container { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+  }
+
+  .header-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .title {
+    font-size: 2.25rem;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  @media (min-width: 768px) {
+    .title { font-size: 3rem; }
+  }
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin: 0.25rem 0 0;
+  }
+  .badge-games {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .tabs-row { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .tab-btn {
+    flex: 1;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    background: rgba(244,247,242,0.1);
+    color: var(--text);
+    transition: background .15s, color .15s;
+  }
+  .tab-btn.active { background: var(--yellow); color: var(--yellow-text); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 1rem;
+  }
+
+  .rental-card {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  .now-block { display: flex; align-items: center; gap: 0.5rem; }
+  .now-label { font-size: 0.75rem; color: var(--text-muted); margin: 0; }
+  .now-value { font-size: 1.5rem; letter-spacing: -0.02em; margin: 0; }
+  .rental-active { display: flex; align-items: center; gap: 0.75rem; }
+  .rental-text-right { text-align: right; }
+  .rental-value { font-size: 1.875rem; letter-spacing: -0.02em; margin: 0; }
+  .icon-btn {
+    padding: 0.5rem;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rental-setup { display: flex; align-items: center; gap: 0.5rem; }
+  .time-input, .text-input {
+    padding: 0.5rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    background: rgba(244,247,242,0.08);
+    border: 1px solid var(--card-border);
+    color: var(--text);
+  }
+  .text-input { flex: 1; padding: 0.5rem 1rem; }
+  .time-input:focus-visible, .text-input:focus-visible,
+  button:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(220,233,75,0.5); }
+
+  .pill-btn, .pill-btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    transition: opacity .15s;
+    white-space: nowrap;
+  }
+  .pill-btn { background: var(--yellow); color: var(--yellow-text); }
+  .pill-btn-outline { background: rgba(244,247,242,0.1); color: var(--text); border: 1px solid var(--card-border); }
+  .pill-btn:disabled, .pill-btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .section { margin-bottom: 2rem; }
+  .section-title {
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .section-title .count {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 0.35rem;
+  }
+
+  .add-player-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+
+  .queue-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+  .queue-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.375rem 0.375rem 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    background: rgba(244,247,242,0.08);
+    border: 1.5px solid var(--card-border);
+  }
+  .queue-chip.next { border-color: var(--yellow); }
+  .chip-status { font-size: 0.75rem; font-weight: 600; }
+  .chip-games { font-size: 0.75rem; color: var(--text-muted); }
+  .chip-remove {
+    padding: 0.25rem;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: inline-flex;
+  }
+
+  .muted-text { font-size: 0.875rem; color: var(--text-muted); margin: 0; }
+
+  .lineup-label { font-size: 0.75rem; color: var(--text-muted); margin: 0 0 0.375rem; }
+  .lineup-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .lineup-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    background: rgba(244,247,242,0.06);
+    border: 1px solid var(--card-border);
+  }
+  .lineup-idx { font-size: 0.75rem; color: var(--text-muted); width: 44px; flex-shrink: 0; }
+  .lineup-vs { color: var(--text-muted); }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .courts-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .courts-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  @media (min-width: 768px) {
+    .courts-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  .court-card { padding: 1rem; animation: popIn 0.16s ease-out; }
+  .court-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+  .court-card-header .left { display: flex; align-items: center; gap: 0.5rem; }
+  .court-num-badge {
+    font-size: 1.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--yellow);
+    color: var(--yellow-text);
+  }
+  .court-label { font-size: 0.75rem; color: var(--text-muted); }
+
+  .court-timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    margin-bottom: 0.75rem;
+    color: var(--yellow);
+  }
+  .court-timer-row .value { font-size: 1.25rem; letter-spacing: -0.02em; }
+
+  .slots-wrap { display: flex; align-items: stretch; margin-bottom: 0.75rem; min-height: 104px; }
+  .slots-col { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; justify-content: center; }
+  .slots-col.left { padding-right: 0.75rem; }
+  .slots-col.right { padding-left: 0.75rem; }
+  .slots-divider { border-left: 2px dashed rgba(244,247,242,0.35); }
+
+  .slot-btn {
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--slot-fill-border);
+    background: var(--slot-fill);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .slot-btn-empty {
+    justify-content: center;
+    gap: 0.25rem;
+    border: 1px dashed var(--slot-empty-border);
+    background: var(--slot-empty);
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .slot-btn-empty.open { background: rgba(220,233,75,0.12); border-color: var(--yellow); }
+  .slot-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .slot-games { font-size: 0.75rem; margin-left: 0.5rem; flex-shrink: 0; color: var(--text-muted); }
+
+  .panel { margin-bottom: 0.75rem; padding: 0.5rem; border-radius: 0.5rem; background: rgba(0,0,0,0.15); }
+  .panel-label { font-size: 0.75rem; margin: 0 0 0.5rem; color: var(--text-muted); }
+  .panel-options { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+  .option-chip {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--slot-empty-border);
+    background: var(--slot-empty);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .sides-col { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 0.5rem; }
+  .side-btn {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    text-align: left;
+    border: 1.5px solid var(--card-border);
+    background: rgba(244,247,242,0.1);
+    color: var(--text);
+    cursor: pointer;
+    width: 100%;
+  }
+  .side-btn.selected { background: var(--yellow); color: var(--yellow-text); border-color: var(--yellow); }
+
+  .confirm-btn, .finish-btn-full {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    background: var(--coral);
+    color: var(--coral-text);
+  }
+  .confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .finish-btn-full.cancel { background: rgba(244,247,242,0.1); color: var(--text); border: 1px solid var(--card-border); }
+
+  .court-actions-row { display: flex; gap: 0.5rem; }
+  .court-actions-row .pill-btn, .court-actions-row .pill-btn-outline { flex: 1; justify-content: center; }
+
+  .stats-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .stats-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--card-border);
+  }
+  .rank-badge {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: rgba(244,247,242,0.1);
+  }
+  .rank-badge.medal { color: #241a08; }
+  .rank-num { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); }
+  .stats-name { flex: 1; font-size: 0.875rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .stats-figures { display: flex; gap: 0.75rem; font-size: 0.75rem; color: var(--text-muted); flex-shrink: 0; }
+
+  @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes pulseGlow { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .time-up { animation: pulseGlow 1.4s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .court-card, .time-up { animation: none; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------------
+  // Icons (small inline SVGs, stroke-based, standing in for lucide-react)
+  // ---------------------------------------------------------------------
+  function icon(name, size) {
+    size = size || 16;
+    var inner = {
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+      check: '<polyline points="20 6 9 17 4 12"/>',
+      clock: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>',
+      play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+      timer: '<line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="14.5" y2="11.5"/><circle cx="12" cy="14" r="8"/>',
+      shuffle: '<polyline points="15 3 20 3 20 8"/><line x1="4" y1="20" x2="20" y2="4"/><polyline points="20 15 20 20 15 20"/><line x1="14" y1="14" x2="20" y2="20"/><line x1="4" y1="4" x2="9" y2="9"/>',
+      trophy: '<path d="M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 4H4a3 3 0 0 0 3 3.5"/><path d="M17 4h3a3 3 0 0 1-3 3.5"/><path d="M9 21h6"/><path d="M12 17v4"/>',
+      medal: '<circle cx="12" cy="15" r="6"/><path d="M9.5 10 7 3h3l2 5 2-5h3l-2.5 7"/>'
+    }[name] || "";
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">' + inner + '</svg>';
+  }
+
+  var MEDAL_COLORS = ["var(--medal-gold)", "var(--medal-silver)", "var(--medal-bronze)"];
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Pure helpers (ported as-is from the React version's logic)
+  // ---------------------------------------------------------------------
+
+  // Tries to build a same-status 4-person match starting from the front of
+  // the line. If the front player has no status, or there simply aren't 4
+  // matching entries anywhere yet, it falls back to plain front-of-line
+  // order so nobody waits forever.
+  function pickNextMatch(queue) {
+    if (queue.length === 0) return { ids: [], queue: [], matched: false };
+    var target = queue[0].status;
+    if (target) {
+      var matched = [];
+      var rest = [];
+      for (var i = 0; i < queue.length; i++) {
+        var entry = queue[i];
+        if (matched.length < 4 && entry.status === target) matched.push(entry);
+        else rest.push(entry);
+      }
+      if (matched.length === 4) {
+        // cross-pair: the first two matched entries were partners, so were
+        // the last two — swap them apart onto the two new teams.
+        var ids = [matched[0].id, matched[2].id, matched[1].id, matched[3].id];
+        return { ids: ids, queue: rest, matched: true };
+      }
+    }
+    var ids2 = queue.slice(0, 4).map(function (e) { return e.id; });
+    var rest2 = queue.slice(4);
+    return { ids: ids2, queue: rest2, matched: false };
+  }
+
+  // Fills empty slots on one court. `aggressive` (manual Fill / Add court)
+  // always places whoever's available. Non-aggressive (auto-refill right
+  // after a finish) only fills a fully-empty court when it can either
+  // complete a clean winners-vs-winners / losers-vs-losers match, or when
+  // the next person in line has no pending result to protect — otherwise
+  // it leaves the court empty rather than force a stale rematch, and a
+  // manual Fill can always be used to move things along.
+  function applyFillCourt(s, courtId, aggressive) {
+    var court = null;
+    for (var i = 0; i < s.courts.length; i++) if (s.courts[i].id === courtId) court = s.courts[i];
+    if (!court) return s;
+    var emptyCount = court.slots.filter(function (slot) { return slot === null; }).length;
+    if (emptyCount === 0) return s;
+
+    var queue = s.queue.slice();
+    var ids = [];
+
+    if (emptyCount === 4) {
+      var target = queue[0] ? queue[0].status : undefined;
+      var result = pickNextMatch(queue);
+      if (!target || result.matched || aggressive) {
+        ids = result.ids;
+        queue = result.queue;
+      } else {
+        return s; // hold off — wait for a matching pair, or a manual Fill
+      }
+    } else {
+      var taken = queue.slice(0, Math.min(emptyCount, queue.length));
+      ids = taken.map(function (e) { return e.id; });
+      queue = queue.slice(ids.length);
+    }
+
+    if (ids.length === 0) return s;
+
+    var idx = 0;
+    var slots = court.slots.map(function (slot) {
+      return (slot === null && idx < ids.length) ? ids[idx++] : slot;
+    });
+    var courts = s.courts.map(function (c) { return c.id === courtId ? Object.assign({}, c, { slots: slots }) : c; });
+    return Object.assign({}, s, { courts: courts, queue: queue });
+  }
+
+  // Non-destructive simulation of how the queue will actually group up, for
+  // the "Lineup" preview. Always resolves (aggressive-style) so the preview
+  // never just stops.
+  function computeLineupPreview(queue) {
+    var remaining = queue.slice();
+    var groups = [];
+    var guard = 0;
+    while (remaining.length > 0 && guard < 50) {
+      var result = pickNextMatch(remaining);
+      if (result.ids.length === 0) break;
+      groups.push(result.ids);
+      remaining = result.queue;
+      guard++;
+    }
+    return groups;
+  }
+
+  function formatClock(d) {
+    return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
+  }
+
+  function formatDuration(ms) {
+    var total = Math.max(0, Math.floor(ms / 1000));
+    var h = Math.floor(total / 3600);
+    var m = Math.floor((total % 3600) / 60);
+    var sec = total % 60;
+    function pad(n) { return String(n).padStart(2, "0"); }
+    return h > 0 ? (h + ":" + pad(m) + ":" + pad(sec)) : (m + ":" + pad(sec));
+  }
+
+  // ---------------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------------
+  var state = {
+    players: [],   // {id, name, games, wins, losses}
+    queue: [],     // {id, status: undefined|"won"|"lost"} — single ordered line
+    courts: [],    // {id, num, slots:[id|null x4], startedAt: number|null}
+    idSeq: 1,
+    courtSeq: 1,
+    totalGames: 0
+  };
+  var tab = "queue";           // 'queue' | 'stats'
+  var picker = null;           // {courtId, slotIndex}
+  var finishing = null;        // {courtId, selectedSide}
+  var now = new Date();
+  var rentalEndAt = null;      // Date | null
+
+  function playerName(id) {
+    for (var i = 0; i < state.players.length; i++) if (state.players[i].id === id) return state.players[i].name;
+    return "";
+  }
+  function playerGames(id) {
+    for (var i = 0; i < state.players.length; i++) if (state.players[i].id === id) return state.players[i].games;
+    return 0;
+  }
+
+  // ---------------------------------------------------------------------
+  // Actions
+  // ---------------------------------------------------------------------
+  function startRental() {
+    var input = document.getElementById("end-time-input");
+    var val = input ? input.value : "";
+    if (!val) return;
+    var parts = val.split(":").map(Number);
+    var h = parts[0], m = parts[1];
+    var end = new Date();
+    end.setHours(h, m, 0, 0);
+    if (end.getTime() <= Date.now()) end.setDate(end.getDate() + 1);
+    rentalEndAt = end;
+    render();
+  }
+
+  function clearRental() {
+    rentalEndAt = null;
+    render();
+  }
+
+  function handleAddPlayer() {
+    var input = document.getElementById("player-name-input");
+    var name = (input ? input.value : "").trim();
+    if (!name) return;
+    var id = "p" + state.idSeq;
+    state.players = state.players.concat([{ id: id, name: name, games: 0, wins: 0, losses: 0 }]);
+    state.queue = state.queue.concat([{ id: id, status: undefined }]);
+    state.idSeq += 1;
+    render();
+  }
+
+  function removePlayer(playerId) {
+    state.players = state.players.filter(function (p) { return p.id !== playerId; });
+    state.queue = state.queue.filter(function (e) { return e.id !== playerId; });
+    state.courts = state.courts.map(function (c) {
+      return Object.assign({}, c, { slots: c.slots.map(function (s) { return s === playerId ? null : s; }) });
+    });
+    picker = null;
+    finishing = null;
+    render();
+  }
+
+  function addCourt() {
+    var id = "c" + state.courtSeq;
+    var withCourt = Object.assign({}, state, {
+      courts: state.courts.concat([{ id: id, num: state.courtSeq, slots: [null, null, null, null], startedAt: null }]),
+      courtSeq: state.courtSeq + 1
+    });
+    state = applyFillCourt(withCourt, id, true);
+    render();
+  }
+
+  function removeCourt(courtId) {
+    var court = null;
+    for (var i = 0; i < state.courts.length; i++) if (state.courts[i].id === courtId) court = state.courts[i];
+    var occupants = court ? court.slots.filter(Boolean) : [];
+    state.queue = state.queue.concat(occupants.map(function (id) { return { id: id, status: undefined }; }));
+    state.courts = state.courts.filter(function (c) { return c.id !== courtId; });
+    picker = null;
+    finishing = null;
+    render();
+  }
+
+  function fillCourt(courtId) {
+    state = applyFillCourt(state, courtId, true);
+    render();
+  }
+
+  function clearSlot(courtId, slotIndex) {
+    var returned = null;
+    state.courts = state.courts.map(function (c) {
+      if (c.id !== courtId) return c;
+      var slots = c.slots.slice();
+      returned = slots[slotIndex];
+      slots[slotIndex] = null;
+      return Object.assign({}, c, { slots: slots });
+    });
+    if (returned) state.queue = state.queue.concat([{ id: returned, status: undefined }]);
+    render();
+  }
+
+  function assignManual(courtId, slotIndex, playerId) {
+    var queueWithout = state.queue.filter(function (e) { return e.id !== playerId; });
+    var bumped = null;
+    state.courts = state.courts.map(function (c) {
+      if (c.id !== courtId) return c;
+      var slots = c.slots.slice();
+      bumped = slots[slotIndex];
+      slots[slotIndex] = playerId;
+      return Object.assign({}, c, { slots: slots });
+    });
+    state.queue = bumped ? queueWithout.concat([{ id: bumped, status: undefined }]) : queueWithout;
+    picker = null;
+    render();
+  }
+
+  function startGame(courtId) {
+    state.courts = state.courts.map(function (c) { return c.id === courtId ? Object.assign({}, c, { startedAt: Date.now() }) : c; });
+    render();
+  }
+
+  function finalizeGame(courtId, winningSide) {
+    var court = null;
+    for (var i = 0; i < state.courts.length; i++) if (state.courts[i].id === courtId) court = state.courts[i];
+    if (!court) return;
+    var teamA = [court.slots[0], court.slots[1]];
+    var teamB = [court.slots[2], court.slots[3]];
+    if (teamA.some(function (x) { return !x; }) || teamB.some(function (x) { return !x; })) return;
+    var winIds = winningSide === "A" ? teamA : teamB;
+    var loseIds = winningSide === "A" ? teamB : teamA;
+    state.players = state.players.map(function (p) {
+      if (winIds.indexOf(p.id) !== -1) return Object.assign({}, p, { games: p.games + 1, wins: p.wins + 1 });
+      if (loseIds.indexOf(p.id) !== -1) return Object.assign({}, p, { games: p.games + 1, losses: p.losses + 1 });
+      return p;
+    });
+    var newEntries = [
+      { id: winIds[0], status: "won" },
+      { id: winIds[1], status: "won" },
+      { id: loseIds[0], status: "lost" },
+      { id: loseIds[1], status: "lost" }
+    ];
+    state.queue = state.queue.concat(newEntries);
+    state.courts = state.courts.map(function (c) {
+      return c.id === courtId ? Object.assign({}, c, { slots: [null, null, null, null], startedAt: null }) : c;
+    });
+    state.totalGames += 1;
+    state = applyFillCourt(state, courtId, false);
+    finishing = null;
+    render();
+  }
+
+  function openSlotPicker(courtId, slotIndex) {
+    var isOpenHere = picker && picker.courtId === courtId && picker.slotIndex === slotIndex;
+    finishing = null;
+    picker = isOpenHere ? null : { courtId: courtId, slotIndex: slotIndex };
+    render();
+  }
+
+  function toggleFinishing(courtId) {
+    var finishingHere = finishing && finishing.courtId === courtId;
+    picker = null;
+    finishing = finishingHere ? null : { courtId: courtId, selectedSide: null };
+    render();
+  }
+
+  function selectSide(courtId, side) {
+    finishing = { courtId: courtId, selectedSide: side };
+    render();
+  }
+
+  function setTabAction(name) {
+    tab = name;
+    render();
+  }
+
+  // ---------------------------------------------------------------------
+  // Ticking clock — updates the on-screen clock / countdowns / court
+  // timers every second WITHOUT doing a full re-render, so typing in the
+  // name/time inputs never gets interrupted.
+  // ---------------------------------------------------------------------
+  function tick() {
+    now = new Date();
+    var clockEl = document.getElementById("now-clock");
+    if (clockEl) clockEl.textContent = formatClock(now);
+
+    if (rentalEndAt) {
+      var remainingMs = rentalEndAt.getTime() - now.getTime();
+      var timeUp = remainingMs <= 0;
+      var labelEl = document.getElementById("rental-label");
+      var remEl = document.getElementById("rental-remaining");
+      if (labelEl && remEl) {
+        labelEl.textContent = timeUp ? "Court time" : ("Time left \u00B7 ends " + formatClock(rentalEndAt));
+        remEl.textContent = timeUp ? "Time's up" : formatDuration(remainingMs);
+        remEl.style.color = timeUp ? "var(--coral)" : "var(--yellow)";
+        remEl.classList.toggle("time-up", timeUp);
+      }
+    }
+
+    state.courts.forEach(function (c) {
+      if (c.startedAt) {
+        var el = document.getElementById("timer-" + c.id);
+        if (el) el.textContent = formatDuration(now.getTime() - c.startedAt);
+      }
+    });
+  }
+  setInterval(tick, 1000);
+
+  // ---------------------------------------------------------------------
+  // Rendering
+  // ---------------------------------------------------------------------
+  function renderSlot(court, index) {
+    var playerId = court.slots[index];
+    var isPickerOpenHere = picker && picker.courtId === court.id && picker.slotIndex === index;
+
+    if (playerId) {
+      var games = playerGames(playerId);
+      return '<button type="button" class="slot-btn" data-action="clear-slot" data-court="' + court.id + '" data-slot="' + index + '" title="Tap to send back to queue">' +
+        '<span class="slot-name">' + escapeHtml(playerName(playerId)) + '</span>' +
+        (games > 0 ? '<span class="slot-games">' + games + '</span>' : '') +
+        '</button>';
+    }
+
+    return '<button type="button" class="slot-btn slot-btn-empty' + (isPickerOpenHere ? ' open' : '') + '" data-action="open-slot" data-court="' + court.id + '" data-slot="' + index + '">' +
+      icon("plus", 13) + 'Add</button>';
+  }
+
+  function pickerOptions() {
+    return state.queue.map(function (e) { return { id: e.id, tag: e.status || null }; });
+  }
+
+  function renderCourtCard(court) {
+    var full = court.slots.every(function (s) { return s !== null; });
+    var emptyCount = court.slots.filter(function (s) { return s === null; }).length;
+    var canFill = emptyCount > 0 && state.queue.length > 0;
+    var pickerHere = picker && picker.courtId === court.id;
+    var finishingHere = finishing && finishing.courtId === court.id;
+    var inProgress = !!court.startedAt;
+
+    var html = '<div class="card court-card">';
+    html += '<div class="court-card-header">';
+    html += '<div class="left"><div class="court-num-badge font-display">' + court.num + '</div>';
+    html += '<span class="court-label">Court ' + court.num + '</span></div>';
+    html += '<button type="button" class="icon-btn" data-action="remove-court" data-court="' + court.id + '" title="Remove court">' + icon("x", 16) + '</button>';
+    html += '</div>';
+
+    if (inProgress) {
+      html += '<div class="court-timer-row"><span class="value">' + icon("timer", 14) + '</span>' +
+        '<span class="value font-display" id="timer-' + court.id + '">' + formatDuration(now.getTime() - court.startedAt) + '</span></div>';
+    }
+
+    html += '<div class="slots-wrap">';
+    html += '<div class="slots-col left">' + renderSlot(court, 0) + renderSlot(court, 1) + '</div>';
+    html += '<div class="slots-divider"></div>';
+    html += '<div class="slots-col right">' + renderSlot(court, 2) + renderSlot(court, 3) + '</div>';
+    html += '</div>';
+
+    if (pickerHere) {
+      var opts = pickerOptions();
+      html += '<div class="panel"><p class="panel-label">Choose a player</p><div class="panel-options">';
+      if (opts.length === 0) {
+        html += '<span class="muted-text">No one available</span>';
+      } else {
+        opts.forEach(function (opt) {
+          html += '<button type="button" class="option-chip" data-action="assign-manual" data-court="' + court.id + '" data-slot="' + picker.slotIndex + '" data-player="' + opt.id + '">' +
+            escapeHtml(playerName(opt.id)) + (opt.tag ? " (" + opt.tag + ")" : "") + '</button>';
+        });
+      }
+      html += '</div></div>';
+    }
+
+    if (finishingHere) {
+      html += '<div class="panel"><p class="panel-label">Who won?</p><div class="sides-col">';
+      html += '<button type="button" class="side-btn' + (finishing.selectedSide === "A" ? " selected" : "") + '" data-action="select-side" data-court="' + court.id + '" data-side="A">' +
+        escapeHtml(playerName(court.slots[0])) + ' &amp; ' + escapeHtml(playerName(court.slots[1])) + ' won</button>';
+      html += '<button type="button" class="side-btn' + (finishing.selectedSide === "B" ? " selected" : "") + '" data-action="select-side" data-court="' + court.id + '" data-side="B">' +
+        escapeHtml(playerName(court.slots[2])) + ' &amp; ' + escapeHtml(playerName(court.slots[3])) + ' won</button>';
+      html += '</div>';
+      html += '<button type="button" class="confirm-btn" data-action="confirm-finish" data-court="' + court.id + '" ' + (!finishing.selectedSide ? "disabled" : "") + '>' +
+        icon("check", 14) + 'Confirm</button>';
+      html += '</div>';
+    }
+
+    if (!inProgress) {
+      html += '<div class="court-actions-row">';
+      html += '<button type="button" class="pill-btn-outline" data-action="fill-court" data-court="' + court.id + '" ' + (!canFill ? "disabled" : "") + '>' + icon("shuffle", 14) + 'Fill</button>';
+      html += '<button type="button" class="pill-btn" data-action="start-game" data-court="' + court.id + '" ' + (!full ? "disabled" : "") + '>' + icon("play", 14) + 'Start game</button>';
+      html += '</div>';
+    } else {
+      html += '<button type="button" class="finish-btn-full' + (finishingHere ? " cancel" : "") + '" data-action="toggle-finishing" data-court="' + court.id + '">' +
+        (finishingHere ? "Cancel" : (icon("check", 14) + "Finish game")) + '</button>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderLineupGroups() {
+    if (state.queue.length === 0) {
+      return '<p class="muted-text">Queue is empty.</p>';
+    }
+    var groups = computeLineupPreview(state.queue);
+    var html = '<div class="lineup-list">';
+    groups.forEach(function (g, i) {
+      html += '<div class="lineup-row"><span class="lineup-idx">' + (i === 0 ? "Next" : ("#" + (i + 1))) + '</span>';
+      if (g.length === 4) {
+        html += '<span class="truncate">' + escapeHtml(playerName(g[0])) + ' &amp; ' + escapeHtml(playerName(g[1])) +
+          ' <span class="lineup-vs">vs</span> ' + escapeHtml(playerName(g[2])) + ' &amp; ' + escapeHtml(playerName(g[3])) + '</span>';
+      } else {
+        html += '<span class="truncate">' + g.map(function (id) { return escapeHtml(playerName(id)); }).join(", ") + '</span>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderStatsTab() {
+    var sorted = state.players.slice().sort(function (a, b) {
+      return (b.wins - a.wins) || (b.games - a.games) || a.name.localeCompare(b.name);
+    });
+    if (sorted.length === 0) {
+      return '<p class="muted-text">No players yet.</p>';
+    }
+    var html = '<div class="stats-list">';
+    sorted.forEach(function (p, i) {
+      var medal = i < 3 ? MEDAL_COLORS[i] : null;
+      html += '<div class="stats-row">';
+      html += '<div class="rank-badge' + (medal ? " medal" : "") + '" style="' + (medal ? "background:" + medal : "") + '">';
+      html += medal ? icon("medal", 16) : '<span class="rank-num">' + (i + 1) + '</span>';
+      html += '</div>';
+      html += '<span class="stats-name">' + escapeHtml(p.name) + '</span>';
+      html += '<div class="stats-figures"><span>' + p.games + ' G</span><span>' + p.wins + ' W</span><span>' + p.losses + ' L</span></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  function renderApp(nameVal, timeVal) {
+    var remainingMs = rentalEndAt ? rentalEndAt.getTime() - now.getTime() : null;
+    var timeUp = rentalEndAt && remainingMs <= 0;
+
+    var html = '<div class="container">';
+
+    // Header
+    html += '<div class="header-row"><div>';
+    html += '<h1 class="title font-display">Dink Queue</h1>';
+    html += '<p class="subtitle">Line up doubles, keep courts moving.</p>';
+    html += '</div>';
+    html += '<div class="badge-games">' + icon("trophy", 16) + '<span>' + state.totalGames + (state.totalGames !== 1 ? " games" : " game") + ' played</span></div>';
+    html += '</div>';
+
+    // Tabs
+    html += '<div class="tabs-row">';
+    html += '<button type="button" class="tab-btn' + (tab === "queue" ? " active" : "") + '" data-action="set-tab" data-tab="queue">Queue</button>';
+    html += '<button type="button" class="tab-btn' + (tab === "stats" ? " active" : "") + '" data-action="set-tab" data-tab="stats">Stats</button>';
+    html += '</div>';
+
+    if (tab === "stats") {
+      html += '<section>' + renderStatsTab() + '</section>';
+    } else {
+      // Rental / clock card
+      html += '<section class="section"><div class="card rental-card">';
+      html += '<div class="now-block">' + icon("clock", 16) + '<div><p class="now-label">Now</p><p class="now-value font-display" id="now-clock">' + formatClock(now) + '</p></div></div>';
+
+      if (rentalEndAt) {
+        html += '<div class="rental-active"><div class="rental-text-right">';
+        html += '<p class="now-label" id="rental-label">' + (timeUp ? "Court time" : ("Time left \u00B7 ends " + formatClock(rentalEndAt))) + '</p>';
+        html += '<p class="rental-value font-display' + (timeUp ? " time-up" : "") + '" id="rental-remaining" style="color:' + (timeUp ? "var(--coral)" : "var(--yellow)") + '">' +
+          (timeUp ? "Time's up" : formatDuration(remainingMs)) + '</p>';
+        html += '</div>';
+        html += '<button type="button" class="icon-btn" data-action="clear-rental" title="Clear end time">' + icon("x", 16) + '</button>';
+        html += '</div>';
+      } else {
+        html += '<div class="rental-setup">';
+        html += '<input type="time" id="end-time-input" class="time-input" value="' + escapeHtml(timeVal) + '" />';
+        html += '<button type="button" class="pill-btn" id="start-rental-btn" data-action="start-rental" ' + (!timeVal ? "disabled" : "") + '>Set end time</button>';
+        html += '</div>';
+      }
+      html += '</div></section>';
+
+      // Queue section
+      html += '<section class="section">';
+      html += '<h2 class="section-title font-display">Queue<span class="count">(' + state.queue.length + ')</span></h2>';
+      html += '<div class="add-player-row">';
+      html += '<input type="text" id="player-name-input" class="text-input" placeholder="Player name" value="' + escapeHtml(nameVal) + '" />';
+      html += '<button type="button" class="pill-btn" id="add-player-btn" data-action="add-player" ' + (!nameVal.trim() ? "disabled" : "") + '>' + icon("plus", 15) + 'Add</button>';
+      html += '</div>';
+
+      if (state.players.length === 0) {
+        html += '<p class="muted-text">No players yet \u2014 add your first one above.</p>';
+      } else {
+        if (state.queue.length > 0) {
+          html += '<div class="queue-list">';
+          state.queue.forEach(function (entry, i) {
+            html += '<div class="queue-chip' + (i < 4 ? " next" : "") + '">';
+            html += '<span>' + escapeHtml(playerName(entry.id)) + '</span>';
+            if (entry.status) {
+              html += '<span class="chip-status" style="color:' + (entry.status === "won" ? "var(--yellow)" : "var(--text-muted)") + '">' + (entry.status === "won" ? "W" : "L") + '</span>';
+            }
+            var g = playerGames(entry.id);
+            if (g > 0) html += '<span class="chip-games">' + g + '</span>';
+            html += '<button type="button" class="chip-remove" data-action="remove-player" data-id="' + entry.id + '" title="Remove player">' + icon("x", 12) + '</button>';
+            html += '</div>';
+          });
+          html += '</div>';
+        } else {
+          html += '<p class="muted-text" style="margin-bottom:1rem">Everyone\'s on a court.</p>';
+        }
+        html += '<p class="lineup-label">Lineup</p>';
+        html += renderLineupGroups();
+      }
+      html += '</section>';
+
+      // Courts section
+      html += '<section>';
+      html += '<div class="courts-header-row">';
+      html += '<h2 class="section-title font-display" style="margin-bottom:0">Courts<span class="count">(' + state.courts.length + ')</span></h2>';
+      html += '<button type="button" class="pill-btn-outline" data-action="add-court">' + icon("plus", 15) + 'Add court</button>';
+      html += '</div>';
+
+      if (state.courts.length === 0) {
+        html += '<p class="muted-text">Add a court to start playing.</p>';
+      } else {
+        html += '<div class="courts-grid">';
+        state.courts.forEach(function (court) { html += renderCourtCard(court); });
+        html += '</div>';
+      }
+      html += '</section>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  var appEl = document.getElementById("app");
+
+  function render() {
+    var nameInput = document.getElementById("player-name-input");
+    var timeInput = document.getElementById("end-time-input");
+    var nameVal = nameInput ? nameInput.value : "";
+    var timeVal = timeInput ? timeInput.value : "";
+    appEl.innerHTML = renderApp(nameVal, timeVal);
+  }
+
+  // ---------------------------------------------------------------------
+  // Event delegation
+  // ---------------------------------------------------------------------
+  appEl.addEventListener("click", function (e) {
+    var el = e.target.closest("[data-action]");
+    if (!el) return;
+    var action = el.getAttribute("data-action");
+    var courtId = el.getAttribute("data-court");
+    var slotIndex = el.getAttribute("data-slot") !== null ? Number(el.getAttribute("data-slot")) : null;
+
+    switch (action) {
+      case "add-player": handleAddPlayer(); break;
+      case "remove-player": removePlayer(el.getAttribute("data-id")); break;
+      case "add-court": addCourt(); break;
+      case "remove-court": removeCourt(courtId); break;
+      case "fill-court": fillCourt(courtId); break;
+      case "clear-slot": clearSlot(courtId, slotIndex); break;
+      case "open-slot": openSlotPicker(courtId, slotIndex); break;
+      case "assign-manual": assignManual(courtId, slotIndex, el.getAttribute("data-player")); break;
+      case "start-game": startGame(courtId); break;
+      case "toggle-finishing": toggleFinishing(courtId); break;
+      case "select-side": selectSide(courtId, el.getAttribute("data-side")); break;
+      case "confirm-finish":
+        if (finishing && finishing.courtId === courtId && finishing.selectedSide) {
+          finalizeGame(courtId, finishing.selectedSide);
+        }
+        break;
+      case "set-tab": setTabAction(el.getAttribute("data-tab")); break;
+      case "start-rental": startRental(); break;
+      case "clear-rental": clearRental(); break;
+    }
+  });
+
+  appEl.addEventListener("keydown", function (e) {
+    if (e.target && e.target.id === "player-name-input" && e.key === "Enter") {
+      handleAddPlayer();
+    }
+  });
+
+  // Toggle disabled state on the Add / Set-end-time buttons as the user
+  // types, without doing a full re-render (which would blow away focus).
+  appEl.addEventListener("input", function (e) {
+    if (e.target && e.target.id === "player-name-input") {
+      var btn = document.getElementById("add-player-btn");
+      if (btn) btn.disabled = !e.target.value.trim();
+    }
+    if (e.target && e.target.id === "end-time-input") {
+      var btn2 = document.getElementById("start-rental-btn");
+      if (btn2) btn2.disabled = !e.target.value;
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
